@@ -1,16 +1,24 @@
 import { createPool } from 'mysql2/promise';
 import { Provider } from '@nestjs/common';
-import * as process from 'node:process';
+import {
+  DB_HOST,
+  DB_NAME,
+  DB_PASSWORD,
+  DB_PORT,
+  DB_USER,
+} from '../../utils/env';
+import { DB_CONNECTION } from './constants';
+
 
 export const DatabaseProvider: Provider = {
-  provide: 'MYSQL_CONNECTION',
+  provide: DB_CONNECTION,
   useFactory: () => {
     return createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'db_product_test',
+      host: DB_HOST,
+      port: DB_PORT,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
     });
   },
 };
