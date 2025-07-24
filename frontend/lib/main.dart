@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/views/home_view.dart';
+import 'package:frontend/views/product_view.dart';
 import 'package:get/get.dart';
 
-import 'bindings/home_binding.dart';
+import 'bindings/product_binding.dart';
 
 void main() {
   runApp(
@@ -10,7 +10,11 @@ void main() {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       getPages: [
-        GetPage(name: '/', page: () => HomeView(), binding: HomeBinding()),
+        GetPage(
+          name: '/',
+          page: () => ProductView(),
+          binding: ProductBinding(),
+        ),
       ],
     ),
   );
