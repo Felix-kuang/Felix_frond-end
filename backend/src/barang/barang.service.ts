@@ -21,6 +21,7 @@ export class BarangService {
              b.kelompok_barang,
              b.harga,
              k.nama_kategori,
+             k.id as kategori_id,
              b.imageUrl
       FROM barang b
              JOIN kategori k ON b.kategori_id = k.id
@@ -44,6 +45,7 @@ export class BarangService {
              b.kelompok_barang,
              b.harga,
              k.nama_kategori,
+             k.id as kategori_id,
              b.imageUrl
       FROM barang b
              JOIN kategori k ON b.kategori_id = k.id
@@ -72,7 +74,7 @@ export class BarangService {
       dto.stok,
       dto.kelompok_barang.toUpperCase(),
       dto.harga,
-      dto.imageUrl?.trim() ?? 'https://placehold.co/600x400',
+      dto.imageUrl?.trim() ?? '',
     ];
 
     const [result] = await this.db.query<ResultSetHeader>(query, values);
