@@ -159,6 +159,7 @@ class ProductFormView extends GetView<ProductFormController> {
                   SizedBox(height: 20),
                   TextFormField(
                     controller: controller.stockController,
+                    keyboardType: TextInputType.number,
                     decoration: CustomInputDecoration.textField(
                       label: "Stok",
                       isRequired: true,
