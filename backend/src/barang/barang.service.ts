@@ -14,8 +14,17 @@ export class BarangService {
   constructor(@Inject(DB_CONNECTION) private readonly db: Pool) {}
 
   async findAll(search?: string) {
-    let query = `SELECT *
-                 FROM barang`;
+    let query = `
+      SELECT b.id,
+             b.nama_barang,
+             b.stok,
+             b.kelompok_barang,
+             b.harga,
+             k.nama_kategori,
+             b.imageUrl
+      FROM barang b
+             JOIN kategori k ON b.kategori_id = k.id
+    `;
     const values: any[] = [];
 
     if (search) {
