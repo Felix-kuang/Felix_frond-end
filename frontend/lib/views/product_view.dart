@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/controllers/product_controller.dart';
+import 'package:frontend/styles/app_text_styles.dart';
+import 'package:frontend/styles/colors.dart';
 import 'package:get/get.dart';
 
+import '../widgets/product_list_item.dart';
+import '../widgets/product_separator.dart';
+
 class ProductView extends GetView<ProductController> {
+  const ProductView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("List Stok Barang"),
-        elevation: 1,
-        shadowColor: Colors.grey,
         centerTitle: true,
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.search))],
+        actions: [
+          IconButton(
+            onPressed: () {
+              controller.resetEditMode();
+              Get.toNamed('/search');
+            },
+            icon: Icon(Icons.search),
+          ),
+        ],
         leading: Obx(() {
           return controller.isEditMode.value
               ? IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: () {
-                  controller.isEditMode.value = false;
-                  controller.selectedIds.clear();
+                  controller.resetEditMode();
                 },
               )
               : SizedBox.shrink();
@@ -43,10 +55,7 @@ class ProductView extends GetView<ProductController> {
                   Text(
                     "${controller.products.length} Data ditampilkan",
                     textAlign: TextAlign.left,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: AppTextStyles.hintGrey,
                   ),
                   Spacer(),
                   !controller.isEditMode.value
@@ -65,8 +74,9 @@ class ProductView extends GetView<ProductController> {
                 onRefresh: controller.fetchProducts,
                 child: ListView.separated(
                   itemCount: controller.products.length + 1,
-                  //tambah 1 untuk teks
+                  //tambah 1 untuk teks refresh
                   itemBuilder: (context, index) {
+                    //teks refresh
                     if (index == controller.products.length) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -89,32 +99,20 @@ class ProductView extends GetView<ProductController> {
                     final id = item['id'];
 
                     return Obx(() {
-                      return controller.isEditMode.value
-                          ? CheckboxListTile(
-                            controlAffinity: ListTileControlAffinity.leading,
-                            title: Text(item['nama_barang'] ?? '-'),
-                            subtitle: Text('Stok : ${item['stok']}'),
-                            secondary: Text("Rp ${item['harga']}"),
-                            onChanged: (_) => controller.toggleSelection(id),
-                            value: controller.isSelected(id),
-                          )
-                          : ListTile(
-                            title: Text(item['nama_barang'] ?? '-'),
-                            subtitle: Text('Stok : ${item['stok']}'),
-                            trailing: Text("Rp ${item['harga']}"),
-                            onTap: () {},
-                          );
+                      return ProductListItem(
+                        item: item,
+                        isEditMode: controller.isEditMode.value,
+                        isChecked:
+                            controller.isEditMode.value
+                                ? controller.isSelected(id)
+                                : null,
+                        onChecked: (_) => controller.toggleSelection(id),
+                        onTap: () => controller.showDetail(item),
+                      );
                     });
                   },
                   separatorBuilder:
-                      (BuildContext context, int index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Divider(
-                          thickness: 0.8,
-                          color: Colors.grey.shade400,
-                          height: 0,
-                        ),
-                      ),
+                      (BuildContext context, int index) => productSeparator(),
                 ),
               ),
             ),
@@ -129,7 +127,6 @@ class ProductView extends GetView<ProductController> {
                         Obx(() {
                           bool isAll = controller.isAllSelected;
                           bool isNone = controller.selectedIds.isEmpty;
-                          bool isPartial = !isAll && !isNone;
 
                           return Checkbox(
                             value: isNone ? false : (isAll ? true : null),
@@ -152,7 +149,7 @@ class ProductView extends GetView<ProductController> {
                                       height: 16,
                                       child: CircularProgressIndicator(),
                                     )
-                                    : Icon(Icons.delete, color: Colors.red,),
+                                    : Icon(Icons.delete, color: Colors.red),
                             label: Text(
                               "Hapus Barang",
                               style: TextStyle(color: Colors.red),
@@ -161,9 +158,32 @@ class ProductView extends GetView<ProductController> {
                               backgroundColor: Colors.white,
                             ),
                             onPressed:
-                                controller.selectedIds.isEmpty
-                                    ? null
-                                    : controller.deleteSelected,
+                                (() => showDialog(
+                                  context: context,
+                                  builder:
+                                      (ctx) => AlertDialog(
+                                        title: Text("Hapus Dialog"),
+                                        content: Text(
+                                          "Yakin mau hapus ${controller.selectedIds.length} barang yang dipilih?",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  ctx,
+                                                ).pop(false),
+                                            child: Text("Batal"),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(ctx).pop(true);
+                                              controller.deleteSelected();
+                                            },
+                                            child: Text("Hapus"),
+                                          ),
+                                        ],
+                                      ),
+                                )),
                           ),
                         ),
                       ],
@@ -174,6 +194,27 @@ class ProductView extends GetView<ProductController> {
           ],
         );
       }),
+      floatingActionButton: Obx(
+        () =>
+            !controller.isEditMode.value
+                ? FloatingActionButton.extended(
+                  onPressed: () async {
+                    final result = await Get.toNamed('/product-form');
+
+                    if (result == true) {
+                      controller.fetchProducts();
+                    }
+                  },
+                  icon: Icon(Icons.add, size: 35.0),
+                  label: Text("Barang", style: TextStyle(fontSize: 20)),
+                  backgroundColor: AppCustomColor.darkBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                )
+                : SizedBox.shrink(),
+      ),
     );
   }
 }

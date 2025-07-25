@@ -1,5 +1,7 @@
 import 'package:frontend/services/product_service.dart';
+import 'package:frontend/widgets/bottom_sheet_widget.dart';
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 
 class ProductController extends GetxController {
   var isLoading = false.obs;
@@ -37,24 +39,69 @@ class ProductController extends GetxController {
     }
   }
 
+  void resetEditMode() {
+    isEditMode.value = false;
+    selectedIds.clear();
+  }
+
   //delete
   Future<void> deleteSelected() async {
     try {
       isDeleting(true);
       await ProductService.deleteBulk(selectedIds.toList());
-
+      final itemCount = selectedIds.length;
       await fetchProducts();
 
       selectedIds.clear();
 
       isEditMode(false);
 
-      Get.snackbar("Berhasil", "Barang berhasil dihapus");
+      Get.snackbar("Berhasil", "$itemCount barang berhasil dihapus");
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
       isDeleting(false);
     }
+  }
+
+  Future<void> deleteSingle(int id) async {
+    isDeleting(true);
+    try {
+      await ProductService.delete(id);
+      await fetchProducts();
+    } finally {
+      isDeleting(false);
+    }
+  }
+
+  //Product Detail
+  void showDetail(Map<String, dynamic> product) {
+    Get.bottomSheet(
+      BottomSheetWidget(
+        product: product,
+        onDeleteItem: () async {
+          try {
+            await deleteSingle(product['id']);
+            if (Get.isBottomSheetOpen == true) {
+              Get.back();
+            }
+          } catch (e) {
+            Get.back(); // close loading
+          }
+        },
+        onEditItem: () async {
+          Get.back();
+          final result = await Get.toNamed('/product-form', arguments: product);
+          print("Hasil $result");
+          if (result == true) {
+            fetchProducts();
+          }
+        },
+      ),
+      barrierColor: Colors.black45,
+      isDismissible: true,
+      enableDrag: true,
+    );
   }
 
   @override

@@ -14,6 +14,11 @@ class ProductService {
     return response.data;
   }
 
+  static Future<List<dynamic>> searchItems(String keyword) async {
+    final response = await _dio.get('/barang?search=${Uri.encodeQueryComponent(keyword)}');
+    return response.data;
+  }
+
   static Future<Map<String, dynamic>> getById(int id) async {
     final response = await _dio.get('/barang/$id');
     return response.data;
